@@ -80,11 +80,11 @@ func (this *MuxTcpSession) close(err error) error {
 		this.muxtcp.lock.Lock()
 		delete(this.muxtcp.sessions, this.id)
 		this.muxtcp.lock.Unlock()
-		this.muxtcp = nil
 		close(this.recive)
-		ret = nil
 		log.Printf("[muxtcp],%v,%v,session %v close,err %v",
 			this.muxtcp.conn.LocalAddr(), this.muxtcp.conn.RemoteAddr(), this.id, err)
+		ret = nil
+		this.muxtcp = nil
 	})
 	return ret
 }
