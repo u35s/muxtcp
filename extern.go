@@ -11,6 +11,9 @@ func ListenAccept(mux *MuxTcp, addr string) error {
 	if err != nil {
 		return err
 	}
+	mux.AddErrHandler(func(err error) {
+		listener.Close()
+	})
 	acceptConn(listener, func(conn net.Conn) {
 		session := mux.Open(0)
 		go func() {
@@ -71,11 +74,10 @@ func AcceptDial(mux *MuxTcp, addr string) {
 	})
 }
 
-func NewMuxTcp(conn net.Conn, errHandler func(error)) *MuxTcp {
+func NewMuxTcp(conn net.Conn) *MuxTcp {
 	muxtcp := &MuxTcp{
 		conn: conn, sessions: make(map[uint]*MuxTcpSession),
 		sendChan: make(chan *bytes.Buffer, 12), sessionChan: make(chan *MuxTcpSession, 1024),
-		errHandler: errHandler,
 	}
 	muxtcp.run()
 	return muxtcp

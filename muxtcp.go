@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"net"
 	"sync"
 )
@@ -49,7 +50,11 @@ type MuxTcp struct {
 	lock sync.RWMutex
 
 	once       sync.Once
-	errHandler func(error)
+	errHandler []func(error)
+}
+
+func (this *MuxTcp) AddErrHandler(h func(error)) {
+	this.errHandler = append(this.errHandler, h)
 }
 
 func (this *MuxTcp) Open(id uint) *MuxTcpSession {
@@ -151,22 +156,24 @@ func (this *MuxTcp) run() {
 	go func() {
 		this.handleError(this.recivePacket(), func() {
 			this.sendChan <- nil
-			close(this.sessionChan)
 		})
 	}()
 	go func() {
 		this.handleError(this.sendPacket(), func() {
 			this.conn.Close()
-			close(this.sessionChan)
 		})
 	}()
 }
 
 func (this *MuxTcp) handleError(err error, end func()) {
 	this.once.Do(func() {
-		if this.errHandler != nil {
-			this.errHandler(err)
+		for i := range this.errHandler {
+			this.errHandler[i](err)
 		}
+		for _, s := range this.sessions {
+			s.close(err)
+		}
+		close(this.sessionChan)
 		if end != nil {
 			end()
 		}
@@ -175,11 +182,10 @@ func (this *MuxTcp) handleError(err error, end func()) {
 
 func (this *MuxTcp) Close(err error) {
 	this.handleError(err, func() {
-		for _, s := range this.sessions {
-			s.close(err)
-		}
-		close(this.sessionChan)
 		this.sendChan <- nil
+		close(this.sessionChan)
+		log.Printf("[muxtcp],local addr %v,remote add %v,closed %v",
+			this.conn.LocalAddr(), this.conn.RemoteAddr(), err)
 		this.conn.Close()
 	})
 }

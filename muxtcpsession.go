@@ -81,6 +81,7 @@ func (this *MuxTcpSession) close(err error) error {
 		delete(this.muxtcp.sessions, this.id)
 		this.muxtcp.lock.Unlock()
 		close(this.recive)
+		this.err = err
 		log.Printf("[muxtcp],%v,%v,session %v close,err %v",
 			this.muxtcp.conn.LocalAddr(), this.muxtcp.conn.RemoteAddr(), this.id, err)
 		ret = nil
