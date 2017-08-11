@@ -117,7 +117,9 @@ func (this *MuxTcp) drawPacket(buf *bytes.Buffer, read *muxTcpPacketRead) {
 			session = this.Open(uint(read.SessionID))
 			this.sessionChan <- session
 		}
-		session.recive <- data
+		bts := make([]byte, len(data))
+		copy(bts, data)
+		session.recive <- bts
 	}
 }
 
