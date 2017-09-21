@@ -9,6 +9,8 @@ import (
 	"sync"
 )
 
+type uint = uint64
+
 const (
 	muxTcpMaxPacketLen                   = 0xffff
 	muxTcpPacketHeadLen                  = 4
