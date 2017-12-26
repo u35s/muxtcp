@@ -3,11 +3,12 @@ package muxtcp
 import (
 	"bytes"
 	"net"
-	"time"
+
+	"github.com/u35s/gmod/lib/gnet"
 )
 
-func ListenAccept(mux *MuxTcp, addr string) error {
-	listener, err := listen(addr)
+func ListenAccept(mux *MuxTcp, network, addr string) error {
+	listener, err := gnet.Listen(network, addr)
 	if err != nil {
 		return err
 	}
@@ -43,9 +44,9 @@ func ListenAccept(mux *MuxTcp, addr string) error {
 	return nil
 }
 
-func AcceptDial(mux *MuxTcp, addr string) {
+func AcceptDial(mux *MuxTcp, network, addr string) {
 	acceptSession(mux, func(session *MuxTcpSession) {
-		conn, err := net.DialTimeout("tcp", addr, 5*time.Second)
+		conn, err := gnet.Dial("tcp", addr)
 		if err != nil {
 			return
 		}

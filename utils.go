@@ -26,7 +26,7 @@ func listen(addr string) (*net.TCPListener, error) {
 	return listener, nil
 }
 
-func acceptConn(listener *net.TCPListener, f func(conn net.Conn)) {
+func acceptConn(listener net.Listener, f func(conn net.Conn)) {
 	go func() {
 		for {
 			conn, err := listener.Accept()
